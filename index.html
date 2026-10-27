@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule-Based NLP Grammar Checker</title>
+    <meta name="description" content="A transparent, rule-based Natural Language Processing grammar error detection and correction tool.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-container">
+                <div class="logo-area">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            <path d="m9 9.5 2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="app-title">GrammarGuard <span class="badge-tag">Rule-Based NLP</span></h1>
+                        <p class="app-subtitle">Transparent syntactic & morphological error detection without black-box models</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="themeToggleBtn" class="icon-button" title="Toggle Theme" aria-label="Toggle Theme">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Card -->
+            <section class="card input-card">
+                <div class="card-header">
+                    <h2><span class="step-num">1</span> Enter an English Sentence</h2>
+                    <span class="char-count" id="charCount">0 characters</span>
+                </div>
+                
+                <div class="textarea-wrapper">
+                    <textarea 
+                        id="sentenceInput" 
+                        class="text-input" 
+                        placeholder="Type or paste an English sentence here... (e.g., 'He go to school with a apple.')" 
+                        rows="3"
+                        maxlength="500"
+                        spellcheck="false"
+                    ></textarea>
+                    <button id="clearInputBtn" class="clear-btn" title="Clear text" aria-label="Clear text">&times;</button>
+                </div>
+
+                <!-- Quick Samples -->
+                <div class="samples-section">
+                    <div class="samples-label">Quick Test Examples:</div>
+                    <div class="sample-pills" id="samplePills">
+                        <button class="pill-btn" data-text="He go to school every morning.">He go to school</button>
+                        <button class="pill-btn" data-text="She can played the guitar nicely.">She can played</button>
+                        <button class="pill-btn" data-text="I ate a apple and an car passed.">a apple & an car</button>
+                        <button class="pill-btn" data-text="We went to to the the library.">Repeated words</button>
+                        <button class="pill-btn" data-text="he is a good student , and i like him">Punctuation & 'i'</button>
+                        <button class="pill-btn" data-text="They has went to the market.">They has went</button>
+                        <button class="pill-btn" data-text="The diligent student writes clear notes every day.">Correct sentence</button>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="action-row">
+                    <button id="checkGrammarBtn" class="btn btn-primary">
+                        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>Check Grammar</span>
+                    </button>
+                </div>
+
+                <!-- Feedback Toast -->
+                <div id="statusAlert" class="status-alert hidden" role="alert"></div>
+            </section>
+
+            <!-- Results Section (Initially Hidden) -->
+            <section id="resultsSection" class="results-section hidden">
+                <!-- Overview Bar -->
+                <div class="results-summary-bar">
+                    <div class="summary-stat">
+                        <span class="stat-label">Analysis Result</span>
+                        <span id="statResultBadge" class="badge">Errors Detected</span>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="stat-label">Total Errors</span>
+                        <span id="statErrorCount" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <!-- Comparison Cards -->
+                <div class="comparison-grid">
+                    <!-- Original Sentence Card -->
+                    <div class="card sentence-box original-box">
+                        <div class="box-title">
+                            <span class="dot dot-red"></span> Original Sentence
+                        </div>
+                        <p id="originalSentenceText" class="sentence-text"></p>
+                    </div>
+
+                    <!-- Corrected Sentence Card -->
+                    <div class="card sentence-box corrected-box">
+                        <div class="box-title">
+                            <span class="dot dot-green"></span> Corrected Sentence
+                            <button id="copyCorrectedBtn" class="copy-btn" title="Copy to clipboard">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                        <p id="correctedSentenceText" class="sentence-text highlight-correct"></p>
+                    </div>
+                </div>
+
+                <!-- Detected Errors List -->
+                <div id="errorsContainer" class="card errors-card">
+                    <div class="card-header">
+                        <h2><span class="step-num">2</span> Detected Grammatical Errors & Explanations</h2>
+                    </div>
+                    <div id="errorsList" class="errors-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Clean Sentence Success Banner -->
+                <div id="noErrorsBanner" class="card success-card hidden">
+                    <div class="success-icon">✓</div>
+                    <div class="success-content">
+                        <h3>No Grammatical Errors Detected!</h3>
+                        <p>The sentence adheres to all rule-based grammatical guidelines (agreement, verb forms, articles, repetition, and punctuation).</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rules Knowledge Card -->
+            <section class="card rules-info-card">
+                <div class="card-header">
+                    <h2>Rule-Based NLP Modules in this Project</h2>
+                </div>
+                <div class="rules-grid">
+                    <div class="rule-card">
+                        <div class="rule-icon">⚖️</div>
+                        <h3>Subject-Verb Agreement</h3>
+                        <p>Ensures singular subjects match 3rd-person singular verbs (e.g. <em>He goes</em>, not <em>He go</em>) and plural subjects match plural verbs.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-icon">⚙️</div>
+                        <h3>Verb Usage & Tenses</h3>
+                        <p>Checks bare infinitives after modals (<em>can play</em>), auxiliary <em>do/did</em> forms, and past participles after <em>has/have/had</em>.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-icon">🔤</div>
+                        <h3>Indefinite Articles</h3>
+                        <p>Applies phonetic vowel rules: <em>an</em> before vowel sounds (including silent <em>h</em> like <em>an hour</em>) and <em>a</em> before consonants.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-icon">🔁</div>
+                        <h3>Repeated Words</h3>
+                        <p>Flags accidental consecutive duplicate words (e.g. <em>the the</em>, <em>to to</em>) and eliminates redundancies.</p>
+                    </div>
+                    <div class="rule-card">
+                        <div class="rule-icon">✏️</div>
+                        <h3>Punctuation & Style</h3>
+                        <p>Verifies sentence capitalization, terminal punctuation (<code>. ? !</code>), uppercase pronoun <code>I</code>, and spacing.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Grammar Error Detection Using Rule-Based NLP &bull; Built with Python Flask & Vanilla Web Technologies</p>
+        </footer>
+    </div>
+
+    <script src="static/js/script.js"></script>
+</body>
+</html>
